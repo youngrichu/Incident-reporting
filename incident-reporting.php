@@ -3,7 +3,7 @@
  * Plugin Name: Hidden Leaf Incident Reporting
  * Plugin URI: https://hiddenleaf.org
  * Description: A plugin for reporting and managing security incidents
- * Version: 1.0
+ * Version: 1.1
  * Author: YolkWorks
  * Author URI: https://yolk.works
  * License: GPL2

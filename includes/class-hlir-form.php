@@ -64,7 +64,7 @@ class HLIR_Form {
                 </div>
                 
                 <div class="form-group">
-                    <button type="submit" class="hlir-submit-btn">Submit Report</button>
+                    <button type="submit" class="hlir-submit-btn custom-link btn border-width-0 btn-color-671969 btn-round btn-flat btn-icon-left">Submit Report</button>
                 </div>
             </form>
         </div>

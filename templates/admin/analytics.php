@@ -1,6 +1,11 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Get analytics data
 $stats = HLIR_Analytics::get_incident_stats();
+$trends = HLIR_Analytics::get_trends();
 ?>
 <div class="wrap">
     <h1>Incident Analytics</h1>
@@ -10,6 +15,27 @@ $stats = HLIR_Analytics::get_incident_stats();
         <div class="summary-card">
             <h3>Total Incidents</h3>
             <p class="number"><?php echo esc_html($stats['total_incidents']); ?></p>
+        </div>
+        <div class="summary-card">
+            <h3>Open Incidents</h3>
+            <p class="number"><?php echo esc_html($stats['open_incidents']); ?></p>
+        </div>
+        <div class="summary-card">
+            <h3>Critical Incidents</h3>
+            <p class="number"><?php echo esc_html($stats['critical_incidents']); ?></p>
+        </div>
+        <div class="summary-card">
+            <h3>This Month</h3>
+            <p class="number"><?php echo esc_html($trends['this_month']); ?></p>
+            <p class="trend">
+                <?php if ($trends['percent_change'] > 0): ?>
+                    <span class="up">↑ <?php echo esc_html($trends['percent_change']); ?>%</span>
+                <?php elseif ($trends['percent_change'] < 0): ?>
+                    <span class="down">↓ <?php echo esc_html(abs($trends['percent_change'])); ?>%</span>
+                <?php else: ?>
+                    <span class="neutral">—</span>
+                <?php endif; ?>
+            </p>
         </div>
     </div>
 
@@ -41,13 +67,14 @@ $stats = HLIR_Analytics::get_incident_stats();
     </div>
 </div>
 
-<script>
+<script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Analytics page loaded');
+    // Chart.js configuration
+    Chart.defaults.color = '#666';
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
 
     // Parse PHP data
     const statsData = <?php echo json_encode($stats); ?>;
-    console.log('Stats data:', statsData);
 
     // Incident Types Chart
     new Chart(document.getElementById('incidentTypeChart'), {
