@@ -102,12 +102,6 @@
     cursor: not-allowed;
 }
 
-/* Required Field Indicator */
-.form-group label::after {
-    content: "*";
-    color: #f56565;
-    margin-left: 4px;
-}
 
 /* Error State */
 .form-group.has-error input,

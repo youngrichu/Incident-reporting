@@ -3,7 +3,7 @@
  * Plugin Name: Hidden Leaf Incident Reporting
  * Plugin URI: https://hiddenleaf.org
  * Description: A plugin for reporting and managing security incidents
- * Version: 1.1
+ * Version: 1.3
  * Author: YolkWorks
  * Author URI: https://yolk.works
  * License: GPL2
@@ -65,7 +65,7 @@ class Hidden_Leaf_Incident_Reporting {
         
         // Add attachment handlers
         add_action('admin_post_hlir_download_attachment', array($this, 'handle_attachment_download'));
-        add_action('wp_ajax_hlir_delete_attachment', array($this, 'handle_attachment_deletion'));
+        // add_action('wp_ajax_hlir_delete_attachment', array($this, 'handle_attachment_deletion'));
         
         // Enqueue scripts and styles
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
@@ -296,6 +296,8 @@ class Hidden_Leaf_Incident_Reporting {
      * Handle attachment deletion
      */
     public function handle_attachment_deletion() {
+        // Comment out or remove this method
+        /*
         // Verify user capabilities
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized access');
@@ -318,6 +320,7 @@ class Hidden_Leaf_Incident_Reporting {
         } else {
             wp_send_json_error('Failed to delete attachment');
         }
+        */
     }
 }
 
@@ -328,3 +331,23 @@ function hlir_init() {
 
 // Start the plugin
 add_action('plugins_loaded', 'hlir_init');
+
+// Function to initialize plugin settings
+function hlir_activate() {
+    // Default settings
+    $default_settings = array(
+        'notification_email' => get_option('admin_email'),
+        'form_title' => 'Report a Security Incident',
+        'success_message' => 'Thank you for reporting the incident. We will investigate shortly.',
+        'max_file_size' => 5, // MB
+        'allowed_file_types' => array('jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx')
+    );
+
+    // Add the option to the database if it doesn't exist
+    if (!get_option('hlir_settings')) {
+        add_option('hlir_settings', $default_settings);
+    }
+}
+
+// Register activation hook
+register_activation_hook(__FILE__, 'hlir_activate');

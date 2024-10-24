@@ -50,10 +50,23 @@ jQuery(document).ready(function($) {
                             p = this.parentNode;
                         form.appendChild(this);
                         form.reset();
-                        p.insertBefore(this,ref);
+                        p.insertBefore(this, ref);
                     }
                 }
             };
+
+            // Check if there are files attached
+            if (files.length > 0) {
+                // Show uploading alert
+                Swal.fire({
+                    title: 'Uploading...',
+                    text: 'Please wait while your files are being uploaded.',
+                    allowOutsideClick: false,
+                    onBeforeOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
 
             // Check each file
             Array.from(files).forEach(file => {
@@ -121,11 +134,16 @@ jQuery(document).ready(function($) {
                 contentType: false,
                 xhr: function() {
                     const xhr = new window.XMLHttpRequest();
+                    const hasFiles = $('#hlir-attachments')[0].files.length > 0; // Check if files are attached
+
                     xhr.upload.addEventListener('progress', function(e) {
-                        if (e.lengthComputable) {
+                        if (hasFiles && e.lengthComputable) { // Only show progress if files are attached
                             const percent = Math.round((e.loaded / e.total) * 100);
                             $('.progress-bar').css('width', percent + '%');
                             $('.progress-text').text(`Uploading... ${percent}%`);
+                        } else {
+                            $('.progress-bar').css('width', '100%'); // Show submission progress
+                            $('.progress-text').text('Submitting your report...');
                         }
                     }, false);
                     return xhr;
@@ -155,7 +173,7 @@ jQuery(document).ready(function($) {
                             allowOutsideClick: false
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                window.location.href = window.location.pathname;
+                                window.location.href = '/'; // Redirect to home page
                             } else {
                                 form[0].reset();
                                 $('#hlir-severity').css('border-left-color', '');

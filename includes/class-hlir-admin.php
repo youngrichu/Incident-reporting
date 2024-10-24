@@ -329,13 +329,15 @@ class HLIR_Admin {
                    class="button button-small">
                     View Details
                 </a>
-                
+                <!-- Remove or comment out the delete button -->
+                <!--
                 <button type="button" 
                         class="button button-small delete-incident" 
                         data-id="<?php echo esc_attr($incident->id); ?>"
                         data-nonce="<?php echo wp_create_nonce('delete_incident_' . $incident->id); ?>">
                     Delete
                 </button>
+                -->
             </td>
         </tr>
         <?php
@@ -402,45 +404,20 @@ class HLIR_Admin {
                             Submitted: <?php echo esc_html(date('M j, Y H:i', strtotime($incident->submitted_at))); ?>
                         </span>
                     </div>
-
-                    <form class="hlir-status-form" method="post">
-                        <?php wp_nonce_field('hlir_update_status', 'hlir_status_nonce'); ?>
-                        <input type="hidden" name="incident_id" value="<?php echo esc_attr($incident_id); ?>">
-                        <select name="status" class="hlir-status-select">
-                            <option value="new" <?php selected($incident->status, 'new'); ?>>New</option>
-                            <option value="in_progress" <?php selected($incident->status, 'in_progress'); ?>>In Progress</option>
-                            <option value="resolved" <?php selected($incident->status, 'resolved'); ?>>Resolved</option>
-                            <option value="closed" <?php selected($incident->status, 'closed'); ?>>Closed</option>
-                        </select>
-                        <button type="submit" class="button button-primary">Update Status</button>
-                    </form>
                 </div>
 
                 <div class="hlir-incident-content">
-                    <div class="hlir-incident-section">
-                        <h2>Reporter Information</h2>
-                        <table class="form-table">
-                            <tr>
-                                <th>Name:</th>
-                                <td><?php echo esc_html($incident->name); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Email:</th>
-                                <td>
-                                    <a href="mailto:<?php echo esc_attr($incident->email); ?>">
-                                        <?php echo esc_html($incident->email); ?>
-                                    </a>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-
+                    <!-- Incident Details Section -->
                     <div class="hlir-incident-section">
                         <h2>Incident Details</h2>
                         <table class="form-table">
                             <tr>
                                 <th>Type:</th>
                                 <td><?php echo esc_html(ucwords(str_replace('_', ' ', $incident->incident_type))); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Description:</th>
+                                <td><?php echo nl2br(esc_html($incident->description)); ?></td>
                             </tr>
                             <tr>
                                 <th>Severity:</th>
@@ -451,18 +428,37 @@ class HLIR_Admin {
                                 </td>
                             </tr>
                             <tr>
-                                <th>Incident Date:</th>
-                                <td><?php echo esc_html($incident->date); ?></td>
+                                <th>Status:</th>
+                                <td>
+                                    <span class="status-badge status-<?php echo esc_attr($incident->status); ?>">
+                                        <?php echo esc_html(ucwords(str_replace('_', ' ', $incident->status))); ?>
+                                    </span>
+                                </td>
                             </tr>
                             <tr>
-                                <th>Description:</th>
-                                <td class="incident-description">
-                                    <?php echo nl2br(esc_html($incident->description)); ?>
-                                </td>
+                                <th>Actions Already Taken:</th>
+                                <td><?php echo nl2br(esc_html($incident->actions_taken)); ?></td>
                             </tr>
                         </table>
                     </div>
 
+                    <!-- Update Status Section -->
+                    <div class="hlir-incident-section">
+                        <h2>Update Status</h2>
+                        <form method="post" class="hlir-status-form">
+                            <?php wp_nonce_field('hlir_update_status', 'hlir_status_nonce'); ?>
+                            <input type="hidden" name="incident_id" value="<?php echo esc_attr($incident_id); ?>">
+                            <select name="status" class="hlir-status-select">
+                                <option value="new" <?php selected($incident->status, 'new'); ?>>New</option>
+                                <option value="in_progress" <?php selected($incident->status, 'in_progress'); ?>>In Progress</option>
+                                <option value="resolved" <?php selected($incident->status, 'resolved'); ?>>Resolved</option>
+                                <option value="closed" <?php selected($incident->status, 'closed'); ?>>Closed</option>
+                            </select>
+                            <button type="submit" class="button button-primary">Update Status</button>
+                        </form>
+                    </div>
+
+                    <!-- Attachments Section -->
                     <div class="hlir-incident-section">
                         <h2>Attachments</h2>
                         <?php
@@ -492,16 +488,9 @@ class HLIR_Admin {
                                             <a href="<?php echo esc_url(wp_nonce_url(
                                                 admin_url('admin-post.php?action=hlir_download_attachment&id=' . $attachment->id),
                                                 'download_attachment_' . $attachment->id
-                                            )); ?>" 
-                                            class="button button-secondary">
+                                            )); ?>" class="button button-secondary">
                                                 <span class="dashicons dashicons-download"></span> Download
                                             </a>
-                                            <button type="button" 
-                                                    class="button button-secondary delete-attachment" 
-                                                    data-id="<?php echo esc_attr($attachment->id); ?>"
-                                                    data-nonce="<?php echo wp_create_nonce('delete_attachment_' . $attachment->id); ?>">
-                                                <span class="dashicons dashicons-trash"></span> Delete
-                                            </button>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -521,17 +510,6 @@ class HLIR_Admin {
                     <div class="hlir-incident-section">
                         <h2>Notes</h2>
                         <?php $this->display_notes($incident_id); ?>
-                        <form method="post" class="hlir-add-note-form">
-                            <?php wp_nonce_field('add_incident_note', 'note_nonce'); ?>
-                            <input type="hidden" name="action" value="add_incident_note">
-                            <input type="hidden" name="incident_id" value="<?php echo esc_attr($incident_id); ?>">
-                            <p>
-                                <textarea name="note_content" rows="3" class="large-text" required></textarea>
-                            </p>
-                            <p>
-                                <button type="submit" class="button button-secondary">Add Note</button>
-                            </p>
-                        </form>
                     </div>
                 </div>
             </div>
@@ -980,9 +958,15 @@ class HLIR_Admin {
 
     public function notification_email_callback() {
         $settings = get_option('hlir_settings');
+        if (is_array($settings)) {
+            // Access settings safely
+            $notification_email = $settings['notification_email'];
+        } else {
+            $notification_email = ''; // Default value or handle the error
+        }
         ?>
         <input type="email" name="hlir_settings[notification_email]" 
-               value="<?php echo esc_attr($settings['notification_email']); ?>" 
+               value="<?php echo esc_attr($notification_email); ?>" 
                class="regular-text">
         <p class="description">Email address where incident notifications will be sent.</p>
         <?php
@@ -990,9 +974,14 @@ class HLIR_Admin {
 
     public function form_title_callback() {
         $settings = get_option('hlir_settings');
+        if (is_array($settings)) {
+            $form_title = $settings['form_title'];
+        } else {
+            $form_title = 'Default Form Title'; // Default value or handle the error
+        }
         ?>
         <input type="text" name="hlir_settings[form_title]" 
-               value="<?php echo esc_attr($settings['form_title']); ?>" 
+               value="<?php echo esc_attr($form_title); ?>" 
                class="regular-text">
         <p class="description">Title displayed above the incident report form.</p>
         <?php
@@ -1000,9 +989,14 @@ class HLIR_Admin {
 
     public function success_message_callback() {
         $settings = get_option('hlir_settings');
+        if (is_array($settings)) {
+            $success_message = $settings['success_message'];
+        } else {
+            $success_message = 'Thank you for reporting the incident.'; // Default value or handle the error
+        }
         ?>
         <textarea name="hlir_settings[success_message]" class="large-text" rows="3"><?php 
-            echo esc_textarea($settings['success_message']); 
+            echo esc_textarea($success_message); 
         ?></textarea>
         <p class="description">Message shown after successful submission of an incident report.</p>
         <?php
@@ -1047,3 +1041,4 @@ class HLIR_Admin {
         return $sanitized;
     }
 }
+
