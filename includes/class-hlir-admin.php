@@ -18,6 +18,7 @@ class HLIR_Admin {
         add_action('wp_ajax_hlir_export_incidents', array($this, 'export_incidents'));
         add_action('wp_ajax_hlir_add_note', array($this, 'handle_add_note')); // Add this
         add_action('wp_ajax_hlir_delete_note', array($this, 'handle_delete_note')); // Add this
+        add_action('wp_ajax_hlir_delete_incident', array($this, 'handle_incident_deletion'));
     
         // Handle form submissions
         add_action('admin_post_hlir_update_status', array($this, 'handle_status_update'));
@@ -320,14 +321,14 @@ class HLIR_Admin {
                 </span>
             </td>
             <td>
-                <?php 
-                echo esc_html(date('M j, Y', strtotime($incident->submitted_at))); 
-                ?><br>
+                <?php echo esc_html(date('M j, Y', strtotime($incident->submitted_at))); ?><br>
                 <small><?php echo esc_html(date('H:i', strtotime($incident->submitted_at))); ?></small>
             </td>
-            <td>
+            <td class="actions">
                 <a href="?page=hlir-incidents&incident_id=<?php echo esc_attr($incident->id); ?>" 
-                   class="button button-small">View Details</a>
+                   class="button button-small">
+                    View Details
+                </a>
                 
                 <button type="button" 
                         class="button button-small delete-incident" 
@@ -355,6 +356,21 @@ class HLIR_Admin {
             echo '<span class="displaying-num">' . sprintf(_n('%s item', '%s items', $total_items), number_format_i18n($total_items)) . '</span>';
             echo $page_links;
             echo '</div>';
+        }
+    }
+
+    private function get_file_icon($mime_type) {
+        switch ($mime_type) {
+            case 'image/jpeg':
+            case 'image/png':
+                return '<span class="dashicons dashicons-format-image"></span>';
+            case 'application/pdf':
+                return '<span class="dashicons dashicons-pdf"></span>';
+            case 'application/msword':
+            case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                return '<span class="dashicons dashicons-media-document"></span>';
+            default:
+                return '<span class="dashicons dashicons-media-default"></span>';
         }
     }
 
@@ -447,6 +463,54 @@ class HLIR_Admin {
                         </table>
                     </div>
 
+                    <div class="hlir-incident-section">
+                        <h2>Attachments</h2>
+                        <?php
+                        $attachments = HLIR_DB::get_incident_attachments($incident_id);
+                        if (empty($attachments)) {
+                            echo '<p>No attachments found.</p>';
+                        } else {
+                            ?>
+                            <div class="hlir-attachments-list">
+                                <?php foreach ($attachments as $attachment): ?>
+                                    <div class="hlir-attachment-item">
+                                        <div class="attachment-icon">
+                                            <?php echo $this->get_file_icon($attachment->file_type); ?>
+                                        </div>
+                                        <div class="attachment-details">
+                                            <span class="attachment-name"><?php echo esc_html($attachment->file_name); ?></span>
+                                            <span class="attachment-meta">
+                                                <?php 
+                                                $file_size = size_format($attachment->file_size, 2);
+                                                $upload_date = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), 
+                                                    strtotime($attachment->uploaded_at));
+                                                echo esc_html("$file_size • Uploaded on $upload_date");
+                                                ?>
+                                            </span>
+                                        </div>
+                                        <div class="attachment-actions">
+                                            <a href="<?php echo esc_url(wp_nonce_url(
+                                                admin_url('admin-post.php?action=hlir_download_attachment&id=' . $attachment->id),
+                                                'download_attachment_' . $attachment->id
+                                            )); ?>" 
+                                            class="button button-secondary">
+                                                <span class="dashicons dashicons-download"></span> Download
+                                            </a>
+                                            <button type="button" 
+                                                    class="button button-secondary delete-attachment" 
+                                                    data-id="<?php echo esc_attr($attachment->id); ?>"
+                                                    data-nonce="<?php echo wp_create_nonce('delete_attachment_' . $attachment->id); ?>">
+                                                <span class="dashicons dashicons-trash"></span> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php
+                        }
+                        ?>
+                    </div>
+
                     <!-- Activity Log Section -->
                     <div class="hlir-incident-section">
                         <h2>Activity Log</h2>
@@ -474,6 +538,7 @@ class HLIR_Admin {
         </div>
         <?php
     }
+    
 
     private function display_activity_log($incident_id) {
         $activities = HLIR_DB::get_incident_activities($incident_id);
@@ -944,28 +1009,23 @@ class HLIR_Admin {
     }
 
     public function handle_incident_deletion() {
-        check_admin_referer('delete_incident_' . $_POST['incident_id']);
-
+        check_ajax_referer('delete_incident_' . $_POST['incident_id'], 'nonce');
+        
         if (!current_user_can('manage_options')) {
-            wp_die('Unauthorized');
+            wp_send_json_error('Unauthorized access');
         }
-
+    
         $incident_id = isset($_POST['incident_id']) ? intval($_POST['incident_id']) : 0;
-
         if (!$incident_id) {
-            wp_die('Invalid incident ID');
+            wp_send_json_error('Invalid incident ID');
         }
-
+    
         $result = HLIR_DB::delete_incident($incident_id);
-
-        if ($result !== false) {
-            wp_redirect(add_query_arg(array(
-                'page' => 'hlir-incidents',
-                'deleted' => 1
-            ), admin_url('admin.php')));
-            exit;
+    
+        if ($result) {
+            wp_send_json_success('Incident deleted successfully');
         } else {
-            wp_die('Failed to delete incident');
+            wp_send_json_error('Failed to delete incident');
         }
     }
 

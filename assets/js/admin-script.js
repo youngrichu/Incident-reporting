@@ -54,28 +54,51 @@ jQuery(document).ready(function($) {
     // Handle incident deletion
     $('.delete-incident').on('click', function(e) {
         e.preventDefault();
-        if (confirm(hlir_admin.confirm_delete)) {
-            const button = $(this);
-            const incident_id = button.data('id');
-            const nonce = button.data('nonce');
-            
-            $.ajax({
-                url: hlir_admin.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'hlir_delete_incident',
-                    incident_id: incident_id,
-                    nonce: nonce
-                },
-                success: function(response) {
-                    if (response.success) {
-                        window.location.reload();
-                    } else {
-                        alert('Error deleting incident: ' + response.data);
+        
+        const button = $(this);
+        const incidentId = button.data('id');
+        const nonce = button.data('nonce');
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'hlir_delete_incident',
+                        incident_id: incidentId,
+                        nonce: nonce
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Refresh the page
+                            window.location.reload();
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                response.data || 'Failed to delete incident',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function() {
+                        Swal.fire(
+                            'Error!',
+                            'Failed to delete incident',
+                            'error'
+                        );
                     }
-                }
-            });
-        }
+                });
+            }
+        });
     });
 
     // Notes system
