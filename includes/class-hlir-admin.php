@@ -511,6 +511,15 @@ class HLIR_Admin {
                         <h2>Notes</h2>
                         <?php $this->display_notes($incident_id); ?>
                     </div>
+
+                    <div class="hlir-add-note-section">
+                        <h3>Add a Note</h3>
+                        <form class="hlir-add-note-form">
+                            <input type="hidden" name="incident_id" value="<?php echo esc_attr($incident->id); ?>">
+                            <textarea name="note_content" required placeholder="Enter your note here..."></textarea>
+                            <button type="submit" class="button button-primary">Add Note</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

@@ -55,18 +55,18 @@ jQuery(document).ready(function($) {
                 }
             };
 
-            // Check if there are files attached
-            if (files.length > 0) {
-                // Show uploading alert
-                Swal.fire({
-                    title: 'Uploading...',
-                    text: 'Please wait while your files are being uploaded.',
-                    allowOutsideClick: false,
-                    onBeforeOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-            }
+            // // Check if there are files attached
+            // if (files.length > 0) {
+            //     // Show uploading alert
+            //     Swal.fire({
+            //         title: 'Uploading...',
+            //         text: 'Please wait while your files are being uploaded.',
+            //         allowOutsideClick: false,
+            //         onBeforeOpen: () => {
+            //             Swal.showLoading();
+            //         }
+            //     });
+            // }
 
             // Check each file
             Array.from(files).forEach(file => {

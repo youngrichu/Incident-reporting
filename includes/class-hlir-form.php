@@ -226,7 +226,7 @@ class HLIR_Form {
             }
 
             // Send notification email
-            self::send_notification($incident_data, $incident_id);
+            self::send_notification($incident_data, $incident_id, $_POST['hlir_email']); // Pass reporter's email
 
             return $incident_id;
 
@@ -369,10 +369,12 @@ class HLIR_Form {
         return $uploaded_files;
     }
 
-    private static function send_notification($incident_data, $incident_id) {
+    private static function send_notification($incident_data, $incident_id, $reporter_email) {
         $settings = get_option('hlir_settings');
         $to = isset($settings['notification_email']) ? $settings['notification_email'] : get_option('admin_email');
         
+        // Add reporter's email to the recipients
+        $recipients = array_filter([$to, $reporter_email]); // Filter out any empty values
         $subject = sprintf(
             '[%s] New %s Priority Security Incident Reported (#%d)',
             get_bloginfo('name'),
@@ -440,13 +442,13 @@ class HLIR_Form {
             </p>';
         $message .= '</body></html>';
 
-        // Headers for HTML email
+        // Send email to all recipients
         $headers = array(
             'Content-Type: text/html; charset=UTF-8',
             sprintf('From: %s <%s>', get_bloginfo('name'), get_option('admin_email'))
         );
 
-        return wp_mail($to, $subject, $message, $headers);
+        return wp_mail($recipients, $subject, $message, $headers);
     }
 
     public static function display_incident_attachments($incident_id) {

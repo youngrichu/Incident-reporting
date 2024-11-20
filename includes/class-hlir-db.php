@@ -725,4 +725,41 @@ class HLIR_DB {
 
         return $errors;
     }
+
+    public static function send_notification($incident_data, $incident_id, $reporter_email) {
+        $settings = get_option('hlir_settings');
+        $to = isset($settings['notification_email']) ? $settings['notification_email'] : get_option('admin_email');
+        
+        // Prepare email for the technician
+        $subject_technician = sprintf(
+            '[%s] New %s Priority Security Incident Reported (#%d)',
+            get_bloginfo('name'),
+            ucfirst($incident_data['severity']),
+            $incident_id
+        );
+
+        // Prepare email for the reporter
+        $subject_reporter = 'Your incident report has been received';
+
+        // Prepare message for the technician
+        $message_technician = '<html><body>';
+        $message_technician .= '<h2 style="color: #2c3e50;">New Security Incident Report</h2>';
+        $message_technician .= sprintf('<p>A new security incident has been reported. Reference ID: #%d</p>', $incident_id);
+        // ... include other details for technician ...
+        $message_technician .= '</body></html>';
+
+        // Prepare message for the reporter
+        $message_reporter = '<html><body>';
+        $message_reporter .= '<h2 style="color: #2c3e50;">Incident Report Received</h2>';
+        $message_reporter .= '<p>Thank you for reporting the incident. We will investigate shortly.</p>';
+        $message_reporter .= sprintf('<p>Your Reference ID: #%d</p>', $incident_id);
+        // ... include other details for reporter ...
+        $message_reporter .= '</body></html>';
+
+        // Send email to technician
+        wp_mail($to, $subject_technician, $message_technician, $headers);
+
+        // Send email to reporter
+        wp_mail($reporter_email, $subject_reporter, $message_reporter, $headers);
+    }
 }

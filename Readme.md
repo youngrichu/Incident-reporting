@@ -28,8 +28,17 @@ A plugin for reporting and managing security incidents.
 After installation, you can use the shortcode in any post or page to display the incident reporting form.
 
 ## Changelog
-### 1.0
-- Initial release.
+### 1.3
+Fix form display issues and enhance functionality
+
+- Resolved the issue of double required symbols in the incident report form.
+- Ensured all captured fields, including "Actions Already Taken," are displayed in the incident details.
+- Modified the upload alert to only show when files are attached, preventing unnecessary alerts.
+- Updated the success alert to redirect users to the home page upon clicking "Done."
+- Added a download button for attachments in the incident details view.
+- Ensured the status update functionality is present and operational.
+
+These changes improve user experience and maintain the integrity of the incident reporting process.
 
 ## Uninstalling
 To uninstall the plugin, deactivate it from the 'Plugins' menu. If you want to remove all data associated with the plugin, you can delete the plugin, which will also drop the incidents table from the database.

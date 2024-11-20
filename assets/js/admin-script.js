@@ -123,7 +123,7 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     textarea.val('');
-                    window.location.reload();
+                    window.location.reload(); // Reload to show the new note
                 } else {
                     alert('Error adding note: ' + response.data);
                 }
